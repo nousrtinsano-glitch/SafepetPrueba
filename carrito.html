@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePet - Carrito</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --turquoise: #0fb4a8;
+      --turquoise-700: #0b8f84;
+      --turquoise-400: #5fe0d5;
+      --bg-soft: #f7fffe;
+      --card-bg: #ffffff;
+      --text: #203040;
+      --muted: #586370;
+      --white: #ffffff;
+      --shadow: 0 8px 24px rgba(11,31,34,0.08);
+      --radius: 12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins','Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+    body{background:linear-gradient(180deg,var(--bg-soft) 0%, #ffffff 60%);color:var(--text)}
+    a{text-decoration:none;color:inherit}
+    header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:#fff;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+    .logo{display:flex;align-items:center;font-size:24px;font-weight:700;color:#333}
+    .logo img{height:30px;margin-right:10px}
+    nav ul{display:flex;gap:18px;flex-wrap:wrap;list-style:none}
+    nav a{color:#555;font-weight:600}
+    nav a:hover{color:var(--turquoise)}
+
+    .container{max-width:1000px;margin:30px auto;padding:0 20px}
+    .card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;border:1px solid rgba(11,31,34,0.03)}
+    .card h2{font-size:22px;margin-bottom:12px;color:var(--turquoise-700)}
+
+    .cart-item{display:grid;grid-template-columns:80px 1fr 160px 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #eef6f5}
+    .cart-item:last-child{border-bottom:none}
+    .cart-item img{width:80px;height:80px;object-fit:cover;border-radius:8px}
+    .qty{display:flex;gap:8px;align-items:center}
+    .qty button{width:28px;height:28px;border-radius:6px;border:1px solid #d9f3ef;background:#fff;cursor:pointer}
+
+    .summary{display:grid;grid-template-columns:1fr 320px;gap:16px}
+    @media(max-width:900px){.summary{grid-template-columns:1fr}}
+
+    .btn-primary{display:inline-block;padding:12px 18px;background:linear-gradient(90deg,var(--turquoise) 0%, var(--turquoise-400) 100%);color:var(--white);border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    .btn-primary:hover{transform:translateY(-2px)}
+    .btn-outline{display:inline-block;padding:10px 18px;background:transparent;color:var(--turquoise-700);border:2px solid rgba(15,180,168,0.14);border-radius:10px;font-weight:700;cursor:pointer}
+    .btn-outline:hover{background:rgba(15,180,168,0.06)}
+
+    footer{background:linear-gradient(180deg,#17c3b2 0%,#7fe6dc 100%);padding:30px 20px;text-align:center;color:#fff;margin-top:40px}
+
+    /* Modal styles */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;z-index:999}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .modal.active{display:flex}
+    .modal-dialog{width:min(700px,92%);background:#fff;border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.2);overflow:hidden}
+    .modal-header{padding:16px 20px;background:linear-gradient(90deg,var(--turquoise) 0%,var(--turquoise-light) 100%);color:#fff;display:flex;justify-content:space-between;align-items:center}
+    .modal-title{font-size:20px;font-weight:700}
+    .modal-close{background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer}
+    .modal-body{padding:20px;color:var(--text)}
+    .modal-footer{padding:16px 20px;background:#f7fdfc;display:flex;gap:10px;justify-content:flex-end}
+
+    /* Inputs base */
+    .input{width:100%;padding:10px 12px;border:1px solid #d9f3ef;border-radius:8px;outline:none;font:inherit;background:#fcfffe}
+    .input:focus{border-color:var(--turquoise);box-shadow:0 0 0 3px rgba(23,195,178,.15)}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="index.html" style="display:flex;align-items:center;color:inherit"><img src="imagenes/Logo.png" alt="SafePet Logo"> SafePet</a></div>
+  <nav>
+    <ul>
+      <li><a href="index.html">INICIO</a></li>
+      <li><a href="tienda.html">TIENDA</a></li>
+      <li><a href="cosmeticos.html">COSMÉTICOS</a></li>
+      <li><a href="comida.html">COMIDA</a></li>
+      <li><a href="juguetes.html">JUGUETES</a></li>
+      <li><a href="kennel.html">KENNEL</a></li>
+    </ul>
+  </nav>
+  <div class="icons">
+    <a href="#" id="searchBtn">🔍</a>
+    <a href="cuenta.html" id="accountBtn">👤 <span id="accountName" style="margin-left:8px;font-weight:700"></span></a>
+    <a href="#" id="favoritesBtn">❤</a>
+    <a href="carrito.html">🛒</a>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card">
+    <h2>Tu Carrito</h2>
+    <div class="summary">
+      <div id="cartList"></div>
+      <aside style="padding:16px;border-radius:10px;background:#fcfffe;border:1px solid rgba(11,31,34,0.03);min-width:220px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong>Subtotal:</strong><span id="subtotal">$0.00</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong>Total:</strong><span id="total">$0.00</span></div>
+        <button id="checkoutBtn" class="btn-primary" style="width:100%;margin-top:8px">Proceder al pago</button>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- Login modal is now provided globally by auth.js (use window.openLoginModal()/window.closeLoginModal()) -->
+<!-- Using shared modal avoids duplication across pages -->
+
+<!-- Delivery modal -->
+<div id="deliveryBackdrop" class="modal-backdrop"></div>
+<div id="deliveryModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">¿Cómo deseas recibir tu pedido?</div>
+      <button class="modal-close" id="deliveryClose" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <label style="font-weight:700"><input type="radio" name="delivery" value="domicilio" id="deliveryHome"> En domicilio</label>
+        <label style="font-weight:700"><input type="radio" name="delivery" value="tienda" id="deliveryStore" checked> En tienda (retiro)</label>
+        <p style="color:#586370;font-size:14px;margin-top:8px">Escoge una opción para continuar con el pago.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="deliveryCancel">Cancelar</button>
+      <button class="btn-primary" id="deliveryConfirm">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div id="payBackdrop" class="modal-backdrop"></div>
+<div id="payModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">Enviar Comprobante</div>
+      <button class="modal-close" id="payClose" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="payForm">
+        <input type="hidden" id="deliveryType" value="tienda">
+        <div style="display:grid;gap:10px">
+          <label>Monto</label>
+          <input class="input" id="payAmount" readonly>
+          <label>Dirección de entrega</label>
+          <input class="input" id="deliveryAddress" type="text" placeholder="Dirección completa (calle, ciudad)" style="display:none">
+          <label>Nombre completo</label>
+          <input class="input" id="payName" type="text" required>
+          <label>Identificación</label>
+          <input class="input" id="payId" type="text" required>
+          <label>Banco origen</label>
+          <input class="input" id="bankFrom" type="text" required>
+          <label>Banco destino</label>
+          <input class="input" id="bankTo" type="text" required>
+          <label>Teléfono</label>
+          <input class="input" id="payPhone" type="text" required>
+          <label>Referencia</label>
+          <input class="input" id="payRef" type="text" required>
+          <label>Fecha</label>
+          <input class="input" id="payDate" type="date" required>
+          <label>Hora</label>
+          <input class="input" id="payTime" type="time" required>
+          <label>Comprobante (imagen o PDF)</label>
+          <input class="input" id="payReceipt" type="file" accept="image/*,application/pdf" required>
+          <label>Comentarios</label>
+          <textarea class="input" id="payNotes" rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="payCancel">Cancelar</button>
+      <button class="btn-primary" id="paySubmit">Enviar comprobante</button>
+    </div>
+  </div>
+</div>
+
+<footer><p>&copy; 2025 SafePet. Todos los derechos reservados.</p></footer>
+<script src="auth.js"></script>
+
+<script>
+// Carrito demo usando localStorage
+
+    // Cart helpers
+    function loadCart(){
+      try{
+        const raw = localStorage.getItem('safepet_cart');
+        if(!raw) return [];
+        // try parse JSON safely
+        const parsed = JSON.parse(raw);
+        if(Array.isArray(parsed)) return parsed;
+        // support legacy shapes: { items: [...] } or { cart: [...] }
+        if(parsed && typeof parsed === 'object'){
+          if(Array.isArray(parsed.items)) return parsed.items;
+          if(Array.isArray(parsed.cart)) return parsed.cart;
+        }
+        // if it's a stringified single item, wrap
+        if(parsed && typeof parsed === 'object') return [parsed];
+        return [];
+      }catch(e){
+        console.error('loadCart parse failed, attempting fallback', e);
+        try{
+          // fallback: attempt to parse as JSON twice or check sessionStorage
+          let raw = localStorage.getItem('safepet_cart');
+          try{ raw = JSON.parse(raw); }catch(e){}
+          if(Array.isArray(raw)) return raw;
+        }catch(e){}
+        // try sessionStorage fallback
+        try{ const s = sessionStorage.getItem('safepet_cart'); if(s) return JSON.parse(s); }catch(e){}
+        return [];
+      }
+    }
+    function saveCart(list){ try{ localStorage.setItem('safepet_cart', JSON.stringify(list)) }catch(e){ console.error('saveCart failed', e); } }
+    function fmt(n){ return `$${(n||0).toFixed(2)}` }
+
+    function render(){
+      const list = loadCart();
+      const container = document.getElementById('cartList');
+      if(!container) return;
+      // debug banner to help visibility during testing
+      let dbg = document.getElementById('cartDebug');
+      if(!dbg){ dbg = document.createElement('div'); dbg.id = 'cartDebug'; dbg.style.fontSize='13px'; dbg.style.color='#586370'; dbg.style.marginBottom='8px'; container.parentNode.insertBefore(dbg, container); }
+      dbg.textContent = `Elementos en carrito: ${list.length}`;
+
+      if(list.length===0){ container.innerHTML = '<p>No tienes productos en el carrito.</p>'; }
+      else{
+        container.innerHTML = list.map((item, idx)=>{
+          const isKg = item.pricingMode==='kg';
+          const qtyLabel = isKg ? `${item.weightKg||0} kg` : `x${item.qty||1}`;
+          return `
+            <div class="cart-item">
+              <img src="${item.image||'imagenes/Logo.png'}" alt="${item.name}">
+              <div>
+                <div style="font-weight:700">${item.name}</div>
+                <div style="color:#777">${fmt(item.price||9.99)} ${isKg?'/ kg':''}</div>
+              </div>
+              <div class="qty">
+                <button onclick="changeQty(${idx}, -1)">-</button>
+                <span>${qtyLabel}</span>
+                <button onclick="changeQty(${idx}, 1)">+</button>
+              </div>
+              <div style="text-align:right"><button class="btn-outline" onclick="removeItem(${idx})">Eliminar</button></div>
+            </div>`
+        }).join('')
+      }
+      const subtotal = loadCart().reduce((a,b)=> a + (b.price||9.99) * (b.pricingMode==='kg' ? (b.weightKg||0) : (b.qty||1)), 0);
+      document.getElementById('subtotal').textContent = fmt(subtotal);
+      document.getElementById('total').textContent = fmt(subtotal);
+      // update header cart count badge if present
+      try{ const el = document.getElementById('cartCount'); if(el) el.textContent = loadCart().reduce((a,b)=>a + (b.pricingMode==='kg' ? (b.weightKg||0) : (b.qty||1)),0); else {
+        // create badge next to header cart if missing
+        const cartLink = document.querySelector('header .icons a[href="carrito.html"]');
+        if(cartLink && !cartLink.querySelector('.tag')){
+          const s = document.createElement('span'); s.className='tag'; s.style.marginLeft='8px'; s.id='cartCount'; s.textContent = loadCart().reduce((a,b)=>a + (b.pricingMode==='kg' ? (b.weightKg||0) : (b.qty||1)),0); cartLink.appendChild(s);
+        }
+      } }catch(e){console.error('update header count failed', e);}      
+      console.debug('render cart', list.length, 'items, subtotal=', subtotal);
+    }
+
+    function changeQty(i,delta){ const l=loadCart(); if(!l[i]) return; if(l[i].pricingMode==='kg'){ l[i].weightKg = Math.max(0.5, (l[i].weightKg||1) + delta*0.5) } else { l[i].qty = Math.max(1, (l[i].qty||1) + delta) } saveCart(l); render() }
+    function removeItem(i){ const l=loadCart(); l.splice(i,1); saveCart(l); render() }
+
+    // Ensure auth helpers exist
+    if(!window.getUser) window.getUser = ()=>{ try{return JSON.parse(localStorage.getItem('safepet_user')||'null')}catch(e){return null} }
+    if(!window.isLoggedIn) window.isLoggedIn = ()=> !!window.getUser()
+    if(!window.renderAccount) window.renderAccount = ()=>{ const el=document.getElementById('accountName'); const btn=document.getElementById('accountBtn'); const u=getUser(); if(!el||!btn) return; if(u){ el.textContent = u.name || u.email || 'Mi Cuenta'; btn.href='cuenta.html' } else { el.textContent=''; btn.href='cuenta.html?next=' + encodeURIComponent(window.location.href) } }
+
+    // Modal controls and checkout logic
+    function openPayModal(deliveryType){
+      const list = loadCart();
+      if(list.length===0){ showNotice('Tu carrito está vacío. Agrega productos para continuar.', 'Ir a la tienda', 'tienda.html'); return }
+      const subtotal = list.reduce((a,b)=> a + (b.price||9.99) * (b.pricingMode==='kg' ? (b.weightKg||0) : (b.qty||1)), 0);
+      document.getElementById('payAmount').value = subtotal.toFixed(2);
+      const dt = deliveryType || (document.getElementById('deliveryType') && document.getElementById('deliveryType').value) || 'tienda';
+      if(document.getElementById('deliveryType')) document.getElementById('deliveryType').value = dt;
+      const addr = document.getElementById('deliveryAddress');
+      if(addr){ addr.style.display = dt === 'domicilio' ? 'block' : 'none'; if(dt === 'domicilio') addr.setAttribute('required','required'); else addr.removeAttribute('required'); }
+      document.getElementById('payModal').classList.add('active'); document.getElementById('payBackdrop').classList.add('active') }
+    function closePayModal(){ document.getElementById('payModal').classList.remove('active'); document.getElementById('payBackdrop').classList.remove('active') }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      try{ render(); }catch(e){ console.debug('initial render failed', e); }
+      try{ renderAccount && renderAccount(); }catch(e){}
+      let checkoutBtn = document.getElementById('checkoutBtn');
+      const payBackdrop = document.getElementById('payBackdrop');
+      const payClose = document.getElementById('payClose');
+      const payCancel = document.getElementById('payCancel');
+      const paySubmit = document.getElementById('paySubmit');
+
+      // Replace the checkout button element to remove any other attached listeners that may cause unhandled promise rejections
+      try{
+        if(checkoutBtn && checkoutBtn.parentNode){
+          const newBtn = checkoutBtn.cloneNode(true);
+          checkoutBtn.parentNode.replaceChild(newBtn, checkoutBtn);
+          checkoutBtn = newBtn; // point to the fresh element without external listeners
+          console.debug('checkout button replaced to remove external listeners');
+
+          // Force-click handler (capture-phase) to ensure modal opens immediately on click
+          try{
+            checkoutBtn.addEventListener('click', function forceShowModal(e){
+              try{ e && e.preventDefault && e.preventDefault(); e && e.stopImmediatePropagation && e.stopImmediatePropagation(); }
+              catch(err){}
+              try{
+                // If the user is not logged in, open the shared login modal (visual with lock + image)
+                if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+                  // Use the force-login modal for checkout
+                  if(typeof ensureForceLoginModal === 'function') ensureForceLoginModal();
+                  if(typeof window.openForceLoginModal === 'function'){
+                    window.openForceLoginModal();
+                    return;
+                  }
+                  if(typeof window.openLoginModal === 'function'){
+                    window.openLoginModal();
+                    return;
+                  }
+                  if(typeof ensureLoginModal === 'function'){
+                    ensureLoginModal(); if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); return; }
+                  }
+                  openLoginModal && openLoginModal();
+                  return;
+                }
+                // If logged in, proceed to delivery modal
+                showDeliveryModal();
+              }catch(err){ console.error('forceShowModal failed', err); showErrorBanner('Error mostrando el modal'); }
+            }, {capture:true, passive:false});  
+          }catch(e){ console.warn('forceShowModal attach failed', e); }
+        }
+      }catch(e){ console.warn('checkout button replacement failed', e); }
+
+      // update whenever localStorage changes in another tab or context
+      window.addEventListener('storage', (ev)=>{ if(ev.key === 'safepet_cart'){ try{ console.debug('storage event: safepet_cart changed'); render(); }catch(e){ console.error('render failed on storage change', e); } } });
+
+      // Capture-phase document handler to guarantee checkout click opens the appropriate modal
+      (function(){
+        try{
+          document.addEventListener('click', function _safepet_force_checkout(e){
+            try{
+              const btn = e.target && e.target.closest && e.target.closest('#checkoutBtn');
+              if(!btn) return; // not our button
+              // prevent other handlers from interfering
+              try{ e.preventDefault && e.preventDefault(); e.stopImmediatePropagation && e.stopImmediatePropagation(); }catch(er){}
+              // If not logged in, force the force-login modal; otherwise show delivery modal
+              if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+                try{ if(typeof ensureForceLoginModal === 'function') ensureForceLoginModal(); if(typeof window.openForceLoginModal === 'function'){ window.openForceLoginModal(); } else if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); } else { openLoginModal && openLoginModal(); } }catch(err){ console.error('force checkout handler failed', err); showErrorBanner('Error mostrando el modal: ' + (err && err.message || String(err))); }
+              } else {
+                try{ showDeliveryModal(); }catch(err){ console.error('showDeliveryModal failed', err); }
+              }
+            }catch(err){ console.error('_safepet_force_checkout error', err); }
+          }, true);
+        }catch(e){ console.warn('attach document force-checkout failed', e); }
+      })();
+
+      // Helper to quickly test opening the force-login modal from console
+      window.testOpenForceLogin = function(){ try{ if(typeof window.openForceLoginModal === 'function'){ window.openForceLoginModal(); } else if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); } else { openLoginModal && openLoginModal(); } }catch(e){ console.error('testOpenForceLogin failed', e); } };
+
+      // also try a delayed render in case some other scripts initialize later
+      setTimeout(()=>{ try{ render(); }catch(e){} }, 300);
+
+      // Delivery modal elements
+      const deliveryBackdrop = document.getElementById('deliveryBackdrop');
+      const deliveryClose = document.getElementById('deliveryClose');
+      const deliveryCancel = document.getElementById('deliveryCancel');
+      const deliveryConfirm = document.getElementById('deliveryConfirm');
+
+      // Use shared login modal from auth.js; fallback to promptLoginIfGuest if not available
+      function openLoginModal(){ if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); return; } if(typeof promptLoginIfGuest === 'function'){ promptLoginIfGuest(); return; } // Fallback: open the force-login modal or show a friendly notice
+  try{ if(typeof ensureForceLoginModal === 'function') try{ ensureForceLoginModal(); }catch(e){}
+    if(typeof window.openForceLoginModal === 'function'){ window.openForceLoginModal(); return; }
+    if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); return; }
+    if(typeof promptLoginIfGuest === 'function'){ promptLoginIfGuest(); return; }
+    showNotice('Necesitas iniciar sesión para continuar', 'Iniciar sesión', 'cuenta.html');
+  }catch(e){ try{ showNotice('Necesitas iniciar sesión para continuar'); }catch(err){ console.warn('carrito: showNotice failed', err); try{ showErrorBanner('Necesitas iniciar sesión para continuar'); }catch(e2){ console.error('carrito: showErrorBanner failed', e2); } } }
+}
+      function closeLoginModal(){ if(typeof window.closeLoginModal === 'function'){ window.closeLoginModal(); } }
+
+      function showDeliveryModal(){ const m=document.getElementById('deliveryModal'); const b=document.getElementById('deliveryBackdrop'); if(m) m.classList.add('active'); if(b) b.classList.add('active'); }
+      function closeDeliveryModal(){ const m=document.getElementById('deliveryModal'); const b=document.getElementById('deliveryBackdrop'); if(m) m.classList.remove('active'); if(b) b.classList.remove('active'); }
+
+      if(checkoutBtn){
+        checkoutBtn.addEventListener('click', async (e)=>{
+          e && e.preventDefault && e.preventDefault();
+          try{ e.stopImmediatePropagation && e.stopImmediatePropagation(); }catch(e){}
+          console.debug('checkout handler invoked', { loggedIn: isLoggedIn(), time: new Date().toISOString() });
+          try{
+            if(!isLoggedIn()){
+              // For checkout, guests must log in: open the force-login modal
+              try{
+                if(typeof ensureForceLoginModal === 'function') ensureForceLoginModal();
+                if(typeof window.openForceLoginModal === 'function'){
+                  window.openForceLoginModal();
+                } else if(typeof ensureLoginModal === 'function'){
+                  ensureLoginModal(); window.openLoginModal && window.openLoginModal();
+                } else {
+                  openLoginModal && openLoginModal();
+                }
+              }catch(err){ console.error('openForceLoginModal failed', err); showErrorBanner('Error al abrir el modal: ' + (err && err.message || String(err))); }
+              return;
+            }
+            showDeliveryModal();
+          }catch(e){ console.error('checkout failed', e); showErrorBanner('Error en checkout: ' + (e && e.message || String(e))); }
+        });
+        // safe fallback for browsers that may not honor addEventListener immediately
+        checkoutBtn.onclick = checkoutBtn.onclick || function(e){
+          (async function(){
+            try{
+              console.debug('checkout fallback clicked, loggedIn=', (typeof isLoggedIn === 'function') ? isLoggedIn() : false);
+              var logged = false; try{ logged = (typeof isLoggedIn === 'function') ? !!isLoggedIn() : false; }catch(e){ logged = false; }
+              if(!logged){
+                try{ if(typeof ensureForceLoginModal === 'function') ensureForceLoginModal(); }catch(e){}
+                if(typeof window.openForceLoginModal === 'function'){ window.openForceLoginModal(); return; }
+                if(typeof window.openLoginModal === 'function'){ window.openLoginModal(); return; }
+                if(typeof promptLoginIfGuest === 'function'){ try{ await promptLoginIfGuest(); }catch(e){} return; }
+                try{ showNotice('Necesitas iniciar sesión para continuar','Iniciar sesión','cuenta.html'); }catch(e){ console.warn('carrito: showNotice failed', e); try{ showErrorBanner('Necesitas iniciar sesión para continuar'); }catch(e){ console.error('carrito: showErrorBanner failed', e); } }
+                return;
+              }
+              showDeliveryModal();
+            }catch(err){ console.error('checkout fallback failed', err); showErrorBanner('Error en checkout fallback: ' + (err && err.message || String(err))); }
+          })();
+        }
+      }
+
+      deliveryBackdrop && deliveryBackdrop.addEventListener('click', closeDeliveryModal);
+      deliveryClose && deliveryClose.addEventListener('click', closeDeliveryModal);
+      deliveryCancel && deliveryCancel.addEventListener('click', closeDeliveryModal);
+      deliveryConfirm && deliveryConfirm.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const sel = document.querySelector('input[name="delivery"]:checked');
+        const val = sel ? sel.value : 'tienda';
+        closeDeliveryModal();
+        openPayModal(val);
+      });
+
+      // Login modal interactions are handled by the shared modal in auth.js (open/close and button actions)
+
+
+      payBackdrop && payBackdrop.addEventListener('click', closePayModal)
+      payClose && payClose.addEventListener('click', closePayModal)
+      payCancel && payCancel.addEventListener('click', (e)=>{ e.preventDefault(); closePayModal() })
+
+      paySubmit && paySubmit.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const req=['payName','payId','bankFrom','bankTo','payPhone','payRef','payDate','payTime','payReceipt'];
+        const deliveryType = document.getElementById('deliveryType') ? document.getElementById('deliveryType').value : 'tienda';
+        if(deliveryType === 'domicilio'){
+          req.push('deliveryAddress');
+        }
+        const missing = req.filter(id=>{ const el=document.getElementById(id); if(!el) return true; if(el.type==='file') return !el.files || el.files.length===0; return !el.value });
+        if(missing.length>0){ showNotice('Completa todos los campos obligatorios y adjunta el comprobante.'); return }
+        showNotice('Comprobante enviado. Validaremos tu pago.'); saveCart([]); render(); closePayModal();
+      })
+    })
+  </script>
+</body>
+</html>

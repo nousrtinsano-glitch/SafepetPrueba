@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePet - Cuenta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --turquoise:#0fb4a8; --turquoise-400:#5fe0d5; --bg:#e6f9ff; --glass: rgba(255,255,255,0.65); --glass-border: rgba(255,255,255,0.45); --text:#203040; --muted:#586370; --shadow:0 16px 48px rgba(11,31,34,0.12); --radius:14px }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins','Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+    body{min-height:100vh;background:linear-gradient(180deg,var(--bg) 0%, #ffffff 60%);color:var(--text);display:flex;flex-direction:column}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px 36px;background:var(--white);box-shadow:0 8px 20px rgba(11,31,34,0.04);border-bottom:3px solid rgba(15,180,168,0.06)}
+    .logo{font-weight:800;color:var(--turquoise);display:flex;align-items:center;gap:10px}
+    nav ul{display:flex;gap:14px}
+    nav a{color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:8px}
+    .account-wrap{display:flex;gap:12px;align-items:center}
+
+    /* Center */
+    .container{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+    .glass{width:100%;max-width:920px;background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.40));backdrop-filter:blur(8px);border-radius:18px;padding:28px;box-shadow:var(--shadow);border:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center}
+    .hero{padding:20px}
+    .hero h2{color:var(--turquoise);font-size:20px;margin-bottom:8px}
+    .hero h1{font-size:32px;margin-bottom:10px}
+    .hero p{color:var(--muted);line-height:1.45}
+
+    .form-card{background:rgba(255,255,255,0.9);padding:20px;border-radius:12px;border:1px solid rgba(11,31,34,0.04)}
+    .hint{font-size:13px;color:var(--muted);margin-top:6px}
+    .form-card h3{margin-bottom:12px}
+    .input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #e6f6f4;margin-bottom:12px;outline:none}
+    .btn-primary{display:inline-block;padding:12px 18px;background:linear-gradient(90deg,var(--turquoise) 0%,var(--turquoise-400) 100%);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    .small{font-size:13px;color:var(--muted);margin-top:12px}
+    .logout{background:transparent;color:var(--turquoise);border:2px solid rgba(15,180,168,0.12);padding:8px 12px;border-radius:8px}
+
+    footer{padding:20px;text-align:center;color:var(--muted)}
+    @media(max-width:900px){ .glass{grid-template-columns:1fr; padding:18px} }
+    /* Hide dev controls on small screens */
+    @media(max-width:600px){ #devToggle{display:none !important} #devPanel{display:none !important} }
+  </style>
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script>
+    // TODO: Replace placeholder values with your Firebase project's config
+    // You can paste a config here, or use the Dev panel on this page to save one.
+    let firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    // Apply saved config from localStorage when present (dev convenience)
+    function applySavedConfig(){
+      try{
+        const saved = localStorage.getItem('safepet_firebaseConfig');
+        if(saved){ const parsed = JSON.parse(saved); if(parsed && parsed.apiKey) firebaseConfig = parsed; }
+        // update visible indicator
+        try{ updateConfigStatus(); }catch(e){}
+      }catch(e){ console.warn('applySavedConfig failed', e); }
+    }
+
+    // Initialize Firebase only if config has been replaced or saved
+    function initFirebase(){
+      try{
+        if(firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_')){
+          try{ if(!(window.firebase && firebase.apps && firebase.apps.length>0)){ firebase.initializeApp(firebaseConfig); console.info('Firebase initialized'); } else { console.info('Firebase already initialized'); } }catch(e){ console.warn('Firebase init failed', e); }
+        } else {
+          console.info('Firebase not configured — using local demo auth fallback.');
+        }
+
+        // Debug: log firebase app options when initialized and update dev UI
+        try{
+          if(window.firebase && firebase.apps && firebase.apps.length>0){
+            console.info('Firebase app options:', firebase.apps[0].options);
+            const dm = document.getElementById('devMsg'); if(dm) { dm.style.color='var(--turquoise)'; dm.textContent = 'Firebase inicializado'; }
+          } else {
+            const dm = document.getElementById('devMsg'); if(dm) { dm.style.color='var(--muted)'; dm.textContent = 'Firebase no configurado'; }
+          }
+        }catch(e){}
+      }catch(e){ console.warn('initFirebase failed', e); }
+    }
+
+    // Remove any leftover reCAPTCHA key saved in older versions
+    try{ localStorage.removeItem('safepet_recaptchaKey'); }catch(e){}
+    applySavedConfig();
+    initFirebase();
+  </script>
+</head>
+<body>
+  <header>
+    <div class="logo"><img src="imagenes/Logo.png" style="height:28px"> SafePet</div>
+    <nav>
+      <ul>
+        <li><a href="index.html">INICIO</a></li>
+        <li><a href="tienda.html">TIENDA</a></li>
+        <li><a href="cosmeticos.html">COSMÉTICOS</a></li>
+      </ul>
+    </nav>
+    <div class="account-wrap">
+      <a href="carrito.html">&#128722;</a>
+      <a href="cuenta.html" id="accountBtn">&#128100; <span id="accountName" style="margin-left:8px;font-weight:700"></span></a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="glass">
+      <div class="hero">
+        <h2>Bienvenido</h2>
+        <h1>Inicia sesión en tu cuenta</h1>
+        <p>Accede para realizar compras, revisar tu carrito y gestionar pedidos. Usamos una sesión local simple para demostración.</p>
+      </div>
+      <div class="form-card" role="form" aria-label="Inicio de sesión">
+        <h3 id="formTitle">Iniciar sesión</h3>
+          <div id="configStatus" style="margin-top:8px;margin-bottom:8px;font-size:13px;color:var(--muted)"></div>
+        <input id="email" class="input" type="email" placeholder="Correo electrónico" />
+        <input id="password" class="input" type="password" placeholder="Contraseña (mín. 6)" />
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="loginBtn" class="btn-primary">Iniciar sesión</button>
+          <button id="registerBtn" class="btn-primary">Registrarme</button>
+          <button id="forgotBtn" class="btn-primary">Olvidé mi contraseña</button>
+          <button id="logoutBtn" class="logout" style="display:none">Cerrar sesión</button>
+        </div>
+        <div style="margin-top:8px"><button id="resendBtn" class="btn-outline" style="display:none">Reenviar verificación</button></div>
+
+        <div id="message" class="small"></div>
+        <div id="debugError" class="small" style="margin-top:6px;color:#a33;display:none"></div>
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)"><a href="#" id="devToggle">Configurar Firebase (dev)</a></div>
+        <div id="devPanel" style="display:none;margin-top:10px">
+          <label style="font-weight:600">Pega aquí tu firebaseConfig (JSON)</label>
+          <textarea id="devFirebase" class="input" style="min-height:100px;margin-top:8px" placeholder='{"apiKey":"...","authDomain":"..."}'></textarea>
+
+          <div style="display:flex;gap:8px;margin-top:8px"><button id="devSave" class="btn-primary">Guardar config</button><button id="devClear" class="btn-outline">Borrar config</button></div>
+          <div id="devMsg" class="small" style="margin-top:8px;color:var(--muted)"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="pasteConfigBtn" class="btn-outline">Pegar y aplicar config</button>
+            <button id="reapplySavedBtn" class="btn-primary">Reaplicar config guardada</button>
+             <button id="localServerBtn" class="btn-outline">Instrucciones: servidor local</button>
+          </div>
+          <hr style="margin-top:12px;border:none;border-top:1px dashed #e6f6f4" />
+          <label style="font-weight:600;margin-top:8px">Cuenta de prueba</label>
+          <input id="testEmail" class="input" placeholder="correo@ejemplo.com" style="margin-top:8px" />
+          <div style="display:flex;gap:8px;margin-top:8px"><button id="createTest" class="btn-primary">Crear cuenta de prueba</button><button id="checkVerified" class="btn-outline">Comprobar verificación</button></div>
+          <div id="testMsg" class="small" style="margin-top:8px;color:var(--muted)"></div>
+          <div style="display:flex;gap:8px;margin-top:10px"><button id="smokeAdd" class="btn-primary">Añadir producto de prueba al carrito</button><button id="smokeClear" class="btn-outline">Limpiar carrito</button></div>
+          <div id="smokeMsg" class="small" style="margin-top:8px;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 SafePet</p>
+    </footer>
+
+  <script src="auth.js"></script>
+  <script>
+    const DEMO_PASSWORD = 'demo1234';
+    function getUser(){ try{ return JSON.parse(localStorage.getItem('safepet_user')||'null'); }catch(e){return null;} }
+    function setUser(u){ localStorage.setItem('safepet_user', JSON.stringify(u)); }
+    function clearUser(){ localStorage.removeItem('safepet_user'); }
+    function renderAccount(){ const u=getUser(); const name=document.getElementById('accountName'); const logout=document.getElementById('logoutBtn'); const loginBtn=document.getElementById('loginBtn'); if(u){ if(name) name.textContent = u.name||u.email; if(logout) logout.style.display='inline-block'; if(loginBtn) loginBtn.style.display='none'; document.getElementById('formTitle').textContent='Bienvenido, '+(u.name||u.email); } else { if(name) name.textContent=''; if(logout) logout.style.display='none'; if(loginBtn) loginBtn.style.display='inline-block'; document.getElementById('formTitle').textContent='Iniciar sesión'; } }
+
+    // Helper: is Firebase available and configured?
+    function firebaseReady(){ return window.firebase && firebase.auth && firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_'); }
+
+
+
+    // Prompt user to paste config JSON and apply it immediately
+    function promptAndApplyConfig(){
+      try{
+        const raw = prompt('Pega aquí tu firebaseConfig JSON (ej: {"apiKey":"...",...}):');
+        if(!raw) return;
+        setSavedConfig(raw);
+      }catch(e){ const dm=document.getElementById('devMsg'); if(dm){ dm.style.color='crimson'; dm.textContent='Error aplicando configuración.'; } }
+    }
+
+    // Login
+    window.addEventListener('DOMContentLoaded', ()=>{
+      try{
+        document.getElementById('loginBtn').addEventListener('click', ()=>{
+      const email = document.getElementById('email').value.trim();
+      const pw = document.getElementById('password').value;
+      const msg = document.getElementById('message');
+      msg.style.color = 'var(--muted)';
+      if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.style.color='crimson'; msg.textContent='Introduce un correo válido.'; return; }
+      if(!pw || pw.length<6){ msg.style.color='crimson'; msg.textContent='Contraseña mínima 6 caracteres.'; return; }
+
+      if(firebaseReady()){
+        firebase.auth().signInWithEmailAndPassword(email, pw).then(cred => {
+          const u = cred.user;
+          if(!u.emailVerified){ msg.style.color='crimson'; msg.textContent='Correo no verificado. Revisa tu bandeja y verifica tu email.'; document.getElementById('resendBtn').style.display='inline-block'; return; }
+          const user = { email: u.email, name: u.displayName || u.email.split('@')[0], uid: u.uid };
+          setUser(user);
+          renderAccount();
+          const params = new URLSearchParams(location.search); const next = params.get('next');
+          if(next){ location.href = decodeURIComponent(next); } else { location.href = 'tienda.html'; }
+        }).catch(err => {
+          if(err && err.code === 'auth/configuration-not-found'){
+            showError({ code: err.code, message: 'Error de configuración de Firebase. Añade 127.0.0.1 o localhost como dominio autorizado y habilita Email/Password en la consola de Firebase.' }, msg);
+            console.warn('Firebase auth/configuration-not-found:', err);
+          } else { showError(err, msg); }
+        });
+        return;
+      }
+
+      // Demo fallback
+      if(pw !== DEMO_PASSWORD){ msg.style.color='crimson'; msg.textContent='Clave incorrecta.'; return; }
+      const user = { email, name: email.split('@')[0] };
+      setUser(user);
+      renderAccount();
+      const params = new URLSearchParams(location.search); const next = params.get('next');
+      if(next){ location.href = decodeURIComponent(next); } else { location.href = 'tienda.html'; }
+        });
+        // bind register and resend handlers safely
+        const reg = document.getElementById('registerBtn'); if(reg) reg.addEventListener('click', registerHandler);
+        const resend = document.getElementById('resendBtn'); if(resend) resend.addEventListener('click', resendHandler);
+      }catch(e){ console.error('bind login handlers failed', e); }
+    });
+
+    // Register handler (bound on DOMContentLoaded to ensure elements exist)
+    function registerHandler(){
+      const email = document.getElementById('email').value.trim();
+      const pw = document.getElementById('password').value;
+      const msg = document.getElementById('message');
+      msg.style.color = 'var(--muted)';
+      if(!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.style.color='crimson'; msg.textContent='Introduce un correo válido.'; return; }
+      if(!pw || pw.length<6){ msg.style.color='crimson'; msg.textContent='Contraseña mínima 6 caracteres.'; return; }
+        if(firebaseReady()){
+          firebase.auth().createUserWithEmailAndPassword(email, pw).then(cred => {
+            cred.user.sendEmailVerification();
+            msg.style.color='var(--turquoise)'; msg.textContent='Cuenta creada. Revisa tu correo para verificar la cuenta.';
+            const rb = document.getElementById('resendBtn'); if(rb) rb.style.display='inline-block';
+          }).catch(err => { showError(err, msg); });
+          return;
+        }
+      // Demo fallback: create local user only if password matches demo password
+      if(pw !== DEMO_PASSWORD){ msg.style.color='crimson'; msg.textContent='En modo demo, usa la clave demo para registrarte.'; return; }
+      const user = { email, name: email.split('@')[0] };
+      setUser(user);
+      renderAccount();
+      msg.style.color='var(--turquoise)'; msg.textContent='Cuenta demo creada. Ahora puedes iniciar sesión.';
+    }
+
+    // Resend verification (bound on DOMContentLoaded)
+    function resendHandler(){
+      const email = document.getElementById('email').value.trim();
+      const msg = document.getElementById('message');
+      if(firebaseReady()){
+        // reauthenticate by signing in temporarily
+        const pw = document.getElementById('password').value;
+        firebase.auth().signInWithEmailAndPassword(email, pw).then(cred => {
+          cred.user.sendEmailVerification(); msg.style.color='var(--turquoise)'; msg.textContent='Correo de verificación reenviado.'; firebase.auth().signOut();
+        }).catch(err => {
+          if(err && err.code === 'auth/configuration-not-found'){
+            showError({ code: err.code, message: 'Error de configuración de Firebase. Añade 127.0.0.1 o localhost como dominio autorizado y habilita Email/Password en la consola de Firebase.' }, msg);
+            console.warn('Firebase auth/configuration-not-found:', err);
+          } else { showError(err, msg); }
+        });
+      } else { msg.style.color='crimson'; msg.textContent='Firebase no está configurado.'; }
+    }
+
+    // logout and others bound after DOM ready
+    window.addEventListener('DOMContentLoaded', ()=>{
+      try{
+        document.getElementById('logoutBtn').addEventListener('click', ()=>{ clearUser(); renderAccount(); document.getElementById('message').textContent='Sesión cerrada.'; setTimeout(()=>{ document.getElementById('message').textContent=''; },2000); });
+        document.getElementById('registerBtn').addEventListener('click', ()=>{}); // placeholder to ensure element exists (actual handler bound earlier)
+      }catch(e){ console.error('bind logout handlers failed', e); }
+    });
+
+    renderAccount();
+
+
+    // Helper to show errors with codes and debug info
+    function showError(err, el){
+      try{
+        const msgEl = el || document.getElementById('message');
+        if(!msgEl) return;
+        console.warn('Auth error', err);
+        msgEl.style.color = 'crimson';
+        // Friendly mapping for common auth error codes
+        if(err && err.code){
+          const code = err.code;
+          let friendly = err.message || '';
+          if(code === 'auth/wrong-password') friendly = 'Contraseña incorrecta.';
+          else if(code === 'auth/user-not-found') friendly = 'Usuario no encontrado. Regístrate primero.';
+          else if(code === 'auth/invalid-email') friendly = 'Correo inválido.';
+          else if(code === 'auth/too-many-requests') friendly = 'Demasiados intentos. Intenta más tarde.';
+          else if(code === 'auth/configuration-not-found') friendly = 'Error de configuración de Firebase. Añade 127.0.0.1 o localhost como dominio autorizado y habilita Email/Password.';
+          msgEl.textContent = friendly;
+          const dbg = document.getElementById('debugError');
+          if(dbg){ dbg.style.display='block'; dbg.textContent = `Código: ${code}` }
+        } else {
+          msgEl.textContent = err && err.message ? err.message : String(err);
+        }
+      }catch(e){ console.error('showError failed', e); }
+    }
+    // If redirected here because of login requirement, show message
+    const _params = new URLSearchParams(location.search);
+    if(_params.get('next')){
+      const messageEl = document.getElementById('message');
+      if(messageEl){ messageEl.style.color='crimson'; messageEl.textContent = 'Debes iniciar sesión para continuar.'; }
+    }
+    // Show hint if Firebase isn't configured
+    if(!firebaseReady()){
+      const hint = document.createElement('div'); hint.className = 'hint'; hint.innerHTML = 'Nota: Firebase no está configurado. Agrega tu configuración en el script superior para habilitar autenticación real.' + '<br><strong>Clave demo:</strong> demo1234'; document.querySelector('.form-card').appendChild(hint);
+    }
+
+    // Dev helpers: save/clear config from the UI and re-init
+    function setSavedConfig(jsonStr){
+      try{
+        const parsed = JSON.parse(jsonStr);
+        localStorage.setItem('safepet_firebaseConfig', JSON.stringify(parsed));
+        applySavedConfig(); initFirebase();
+        const el = document.getElementById('devMsg'); if(el) { el.style.color='var(--turquoise)'; el.textContent = 'Configuración guardada y aplicada.'; }
+      }catch(e){ const el=document.getElementById('devMsg'); if(el){ el.style.color='crimson'; el.textContent='JSON inválido.'; } }
+    }
+    function clearSavedConfig(){ localStorage.removeItem('safepet_firebaseConfig'); applySavedConfig(); initFirebase(); const el=document.getElementById('devMsg'); if(el){ el.style.color='var(--muted)'; el.textContent='Configuración borrada.'; } }
+
+    // Update the small status indicator showing whether config is present
+    function updateConfigStatus(){
+      try{
+        const el = document.getElementById('configStatus'); if(!el) return;
+        const fb = localStorage.getItem('safepet_firebaseConfig');
+
+        const parts = [];
+        parts.push('Firebase: ' + (fb ? 'guardado' : 'no guardado'));
+        // check runtime
+        if(typeof firebase !== 'undefined' && firebase && firebase.apps && firebase.apps.length>0){ parts.push('Firebase: inicializado'); }
+        el.textContent = parts.join(' • ');
+      }catch(e){ console.warn('updateConfigStatus failed', e); }
+    }
+
+    window.addEventListener('DOMContentLoaded', ()=>{
+      try{
+        const toggle = document.getElementById('devToggle');
+        const panel = document.getElementById('devPanel');
+        if(toggle && panel){ toggle.addEventListener('click', (e)=>{ e.preventDefault(); panel.style.display = panel.style.display==='none' ? 'block' : 'none'; const fb = localStorage.getItem('safepet_firebaseConfig'); if(fb) document.getElementById('devFirebase').value = fb; }); }
+        // Auto-populate dev panel fields if saved config exists (so it's visible without toggling)
+        try{ const fbSaved = localStorage.getItem('safepet_firebaseConfig'); if(fbSaved) { const df = document.getElementById('devFirebase'); if(df) df.value = fbSaved; } }catch(e){}
+        // Update status indicator on load
+        try{ updateConfigStatus(); }catch(e){}
+        const save = document.getElementById('devSave'); if(save) save.addEventListener('click', ()=>{ setSavedConfig(document.getElementById('devFirebase').value); });
+        const clear = document.getElementById('devClear'); if(clear) clear.addEventListener('click', ()=>{ clearSavedConfig(); document.getElementById('devFirebase').value=''; });
+
+        const pasteConfig = document.getElementById('pasteConfigBtn'); if(pasteConfig) pasteConfig.addEventListener('click', ()=>{ promptAndApplyConfig(); });
+          const localServerBtn = document.getElementById('localServerBtn'); if(localServerBtn) localServerBtn.addEventListener('click', ()=>{
+            const dm = document.getElementById('devMsg'); if(dm){ dm.style.color='var(--muted)'; dm.innerHTML = 'Para evitar restricciones de dominio, sirve los archivos desde <strong>http://localhost</strong>. Comandos rápidos:<br><code>npx serve .</code> (Node.js) o <code>python -m http.server 8000</code> (Python). Luego abre <strong>http://localhost:8000/cuenta.html</strong> o ajusta el puerto según el comando.'; }
+          });
+        const reapply = document.getElementById('reapplySavedBtn'); if(reapply) reapply.addEventListener('click', ()=>{ applySavedConfig(); initFirebase(); const dm=document.getElementById('devMsg'); if(dm){ dm.style.color='var(--turquoise)'; dm.textContent='Configuración guardada reaplicada.'; } });
+
+
+        // Test helpers
+        const createTest = document.getElementById('createTest');
+        const checkVerified = document.getElementById('checkVerified');
+        const testMsg = document.getElementById('testMsg');
+        const smokeAdd = document.getElementById('smokeAdd');
+        const smokeClear = document.getElementById('smokeClear');
+        const smokeMsg = document.getElementById('smokeMsg');
+        if(createTest) createTest.addEventListener('click', async ()=>{
+          const email = document.getElementById('testEmail').value.trim();
+          if(!email){ testMsg.style.color='crimson'; testMsg.textContent='Introduce un correo válido para la cuenta de prueba.'; return; }
+          if(!firebaseReady()){ testMsg.style.color='crimson'; testMsg.textContent='Firebase no está configurado.'; return; }
+          try{
+            const pw = 'demo1234';
+            const cred = await firebase.auth().createUserWithEmailAndPassword(email, pw);
+            await cred.user.sendEmailVerification();
+            testMsg.style.color='var(--turquoise)'; testMsg.textContent = 'Cuenta creada. Se envió correo de verificación. Revisa tu bandeja y haz clic en el enlace.';
+          }catch(err){ showError(err, testMsg); }
+        });
+        // Forgot password
+        const forgotBtn = document.getElementById('forgotBtn');
+        if(forgotBtn) forgotBtn.addEventListener('click', ()=>{
+          const email = document.getElementById('email').value.trim(); const msg = document.getElementById('message');
+          if(!email){ msg.style.color='crimson'; msg.textContent='Introduce tu correo para recibir el enlace de restablecimiento.'; return; }
+          if(!firebaseReady()){ msg.style.color='crimson'; msg.textContent='Restablecimiento no disponible en modo demo.'; return; }
+          firebase.auth().sendPasswordResetEmail(email).then(()=>{ msg.style.color='var(--turquoise)'; msg.textContent='Enviado enlace de restablecimiento. Revisa tu correo (incluido spam).'; }).catch(err=>{ showError(err, msg); });
+        });
+        if(checkVerified) checkVerified.addEventListener('click', async ()=>{
+          const email = document.getElementById('testEmail').value.trim();
+          if(!email){ testMsg.style.color='crimson'; testMsg.textContent='Introduce el correo usado para la prueba.'; return; }
+          try{
+             const cred = await firebase.auth().signInWithEmailAndPassword(email, 'demo1234');
+             if(!cred.user.emailVerified){ showError({ code: 'email-not-verified', message: 'Correo aún no verificado. Revisa tu email.' }, testMsg); await firebase.auth().signOut(); return; }
+            // mark local session
+            setUser({ email: cred.user.email, name: cred.user.displayName||cred.user.email.split('@')[0], uid: cred.user.uid });
+            renderAccount(); testMsg.style.color='var(--turquoise)'; testMsg.textContent='Cuenta verificada e iniciada. Puedes proceder a comprar.';
+          }catch(err){ showError(err, testMsg); }
+        });
+        if(smokeAdd) smokeAdd.addEventListener('click', ()=>{
+          addToCart({ name: 'Producto Test', image: '', price: 1.23, pricingMode: 'unit', qty: 1 }); smokeMsg.style.color='var(--turquoise)'; smokeMsg.textContent='Producto test agregado al carrito.';
+        });
+        if(smokeClear) smokeClear.addEventListener('click', ()=>{ localStorage.removeItem('safepet_cart'); smokeMsg.style.color='var(--muted)'; smokeMsg.textContent='Carrito limpiado.'; });
+      }catch(e){ console.error('bind dev panel failed', e); }
+    });
+
+    // Auto-apply the firebaseConfig you provided
+    try{
+      const provided = {
+        apiKey: "AIzaSyBXuD7MTeovHzSGLP5RPsE1F764pia4O3c",
+        authDomain: "safepet-94edd.firebaseapp.com",
+        projectId: "safepet-94edd",
+        storageBucket: "safepet-94edd.firebasestorage.app",
+        messagingSenderId: "1042916460620",
+        appId: "1:1042916460620:web:75d8c8795e418efc928ce9",
+        measurementId: "G-WS2N9M08ZJ"
+      };
+      // Save to localStorage for dev convenience
+      localStorage.setItem('safepet_firebaseConfig', JSON.stringify(provided));
+      applySavedConfig(); initFirebase();
+      const el = document.getElementById('devMsg'); if(el){ el.style.color='var(--turquoise)'; el.textContent='firebaseConfig aplicado desde input del usuario.'; }
+    }catch(e){ console.warn('auto-apply config failed', e); }
+
+    try{
+      // Ensure firebase config is applied and initialized
+      applySavedConfig(); initFirebase();
+    }catch(e){ console.warn('auto-apply config failed', e); }
+  </script>
+</body>
+</html>

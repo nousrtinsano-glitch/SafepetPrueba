@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafePet - Kennel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --turquoise: #0fb4a8;
+      --turquoise-700: #0b8f84;
+      --turquoise-400: #5fe0d5;
+      --bg-soft: #f7fffe;
+      --card-bg: #ffffff;
+      --text: #203040;
+      --muted: #586370;
+      --white: #ffffff;
+      --shadow: 0 8px 24px rgba(11,31,34,0.08);
+      --radius: 12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins','Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+    body{background:linear-gradient(180deg,var(--bg-soft) 0%, #ffffff 60%);color:var(--text)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;background:#fff;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+
+    /* Guest notice */
+    #guestNotice { display: none; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 20px; padding: 12px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92)); border: 1px solid rgba(11,31,34,0.04); box-shadow: 0 6px 18px rgba(11,31,34,0.04); color: var(--text); }
+    #guestNotice.active { display: flex; }
+    #guestNotice .notice-text { font-size: 14px; color: var(--muted); }
+    #guestNotice .notice-actions { display:flex; gap:8px; align-items:center; }
+    #guestNotice .notice-login { background: var(--turquoise); color: var(--white); padding:8px 12px; border-radius:8px; font-weight:700; text-decoration:none; }
+    #guestNotice .notice-close { background: transparent; border: none; color: var(--muted); font-size:18px; cursor:pointer; }
+
+    .logo{display:flex;align-items:center;font-size:24px;font-weight:700;color:#333}
+    .logo img{height:30px;margin-right:10px}
+    nav ul{display:flex;gap:18px;flex-wrap:wrap;list-style:none}
+    nav a{color:#555;font-weight:600;text-decoration:none}
+    nav a:hover{color:var(--turquoise)}
+    .icons{display:flex;gap:12px;font-size:20px;color:#555}
+
+    .hero{padding:40px;background:linear-gradient(90deg,var(--turquoise) 0%, rgba(95,224,213,0.7) 60%);color:var(--white);border-radius:14px;margin:18px 40px}
+    .hero h1{font-size:36px}
+
+    .section{padding:30px 40px}
+    .section h2{font-size:24px;margin-bottom:16px}
+    .section h2::after{content:'';display:block;width:60px;height:4px;background:var(--turquoise);border-radius:4px;margin-top:8px}
+
+    .grid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:20px}
+    @media(max-width:1024px){.grid{grid-template-columns:repeat(3, minmax(0,1fr))}}
+    @media(max-width:768px){.grid{grid-template-columns:repeat(2, minmax(0,1fr))}}
+    @media(max-width:520px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;text-align:center;border:1px solid rgba(11,31,34,0.03)}
+    .card img{width:100%;height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px}
+    .card h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+
+    .btn-primary{display:inline-block;padding:10px 18px;background:linear-gradient(90deg,var(--turquoise) 0%, var(--turquoise-400) 100%);color:var(--white);border:none;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 10px 26px rgba(15,180,168,0.12)}
+    .btn-primary:hover{transform:translateY(-2px)}
+
+    footer{background:linear-gradient(180deg,#17c3b2 0%,#7fe6dc 100%);padding:30px 20px;text-align:center;color:#fff;margin-top:40px}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;z-index:999}
+    .modal-backdrop.active{display:block}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .modal.active{display:flex}
+    .modal-dialog{width:min(600px,92%);background:#fff;border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.2);overflow:hidden}
+    .modal-header{padding:16px 20px;background:linear-gradient(90deg,var(--turquoise) 0%,var(--turquoise-light) 100%);color:#fff;display:flex;justify-content:space-between;align-items:center}
+    .modal-title{font-size:20px;font-weight:700}
+    .modal-close{background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer}
+    .modal-body{padding:20px;color:var(--text)}
+    .modal-body .modal-details{display:flex;gap:12px;align-items:center}
+    .modal-body img#modalImage{width:64px;height:64px;object-fit:cover;border-radius:8px;opacity:0;transform:translateY(6px) scale(.98);transition:opacity .28s ease, transform .28s ease}
+    .modal.active .modal-body img#modalImage{opacity:1;transform:translateY(0) scale(1)}
+    .modal-body .modal-msg{font-weight:700;animation:popIn .36s ease both}
+    @keyframes popIn{0%{opacity:0;transform:translateY(6px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-footer{padding:16px 20px;background:#f7fdfc;display:flex;gap:10px;justify-content:flex-end}
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="index.html" style="display:flex;align-items:center;color:inherit"><img src="imagenes/Logo.png" alt="SafePet Logo"> SafePet</a></div>
+  <nav>
+    <ul>
+      <li><a href="index.html">INICIO</a></li>
+      <li><a href="tienda.html">TIENDA</a></li>
+      <li><a href="cosmeticos.html">COSMÉTICOS</a></li>
+      <li><a href="comida.html">COMIDA</a></li>
+      <li><a href="juguetes.html">JUGUETES</a></li>
+      <li><a href="kennel.html">KENNEL</a></li>
+    </ul>
+  </nav>
+  <div class="icons">
+    <a href="#" id="searchBtn">&#128269;</a>
+    <a href="cuenta.html" id="accountBtn">&#128100; <span id="accountName" style="margin-left:8px;font-weight:700"></span></a>
+    <a href="#" id="favoritesBtn">&#10084;</a>
+    <a href="carrito.html">&#128722; <span id="cartCount" class="tag">0</span></a>
+  </div>
+</header>
+
+<div id="guestNotice" role="status" aria-live="polite">
+  <div class="notice-text">Estás navegando como invitado. Puedes añadir productos al carrito, pero para pagar o usar funciones avanzadas debes iniciar sesión.</div>
+  <div class="notice-actions">
+    <a id="guestNoticeLogin" class="notice-login" href="cuenta.html">Iniciar sesión</a>
+    <button id="guestNoticeClose" class="notice-close" aria-label="Cerrar aviso">✕</button>
+  </div>
+</div>
+
+<section class="hero">
+<script>
+(function(){
+  function updateNotice(){ try{ var el=document.getElementById('guestNotice'); if(!el) return; var user = window.getUser ? window.getUser() : null; if(!user) el.classList.add('active'); else el.classList.remove('active'); }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){ updateNotice(); var closeBtn = document.getElementById('guestNoticeClose'); var loginLink = document.getElementById('guestNoticeLogin'); if(closeBtn) closeBtn.addEventListener('click', function(){ document.getElementById('guestNotice').classList.remove('active'); }); if(loginLink) loginLink.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'cuenta.html?next=' + encodeURIComponent(window.location.href); }); });
+})();
+</script><h1>Kennel</h1><p>Transportines y casetas cómodas y seguras.</p></section>
+
+<section class="section">
+  <h2>Productos</h2>
+  <div class="grid">
+    <div class="card" id="product-kennel-pequeno">
+      <img src="imagenes/kennelp.webp" alt="Kennel Pequeño"/>
+      <h3>Kennel Pequeño</h3>
+      <button class="btn-primary add-to-cart" data-qty-modal="true" data-price-unit="49.99" data-product="Kennel Pequeño">Comprar</button>
+    </div>
+    <div class="card" id="product-kennel-mediano">
+      <img src="imagenes/kennelm.webp" alt="Kennel Mediano"/>
+      <h3>Kennel Mediano</h3>
+      <button class="btn-primary add-to-cart" data-qty-modal="true" data-price-unit="59.99" data-product="Kennel Mediano">Comprar</button>
+    </div>
+    <div class="card" id="product-kennel-grande">
+      <img src="imagenes/kennelg.webp" alt="Kennel Grande"/>
+      <h3>Kennel Grande</h3>
+      <button class="btn-primary add-to-cart" data-qty-modal="true" data-price-unit="69.99" data-product="Kennel Grande">Comprar</button>
+    </div>
+    <div class="card" id="product-transportin-plegable">
+      <img src="imagenes/kennelple.webp" alt="Transportín Plegable"/>
+      <h3>Transportín Plegable</h3>
+      <button class="btn-primary add-to-cart" data-qty-modal="true" data-price-unit="39.99" data-product="Transportín Plegable">Comprar</button>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="modalBackdrop"></div>
+<div class="modal" id="cartModal" aria-hidden="true" role="dialog">
+  <div class="modal-dialog" role="document" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title">Producto agregado</span>
+      <button class="modal-close" id="closeModal" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-details"><img id="modalImage" src="" alt="" style="display:block"/><p id="modalMessage" class="modal-msg">Has agregado un producto al carrito.</p></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="continueShopping">Seguir comprando</button>
+      <a class="btn-primary" href="carrito.html" id="goToCart">Ir al carrito</a>
+    </div>
+  </div>
+</div>
+
+<footer><p>&copy; 2025 SafePet. Todos los derechos reservados.</p></footer>
+<script src="auth.js"></script>
+
+<script>
+function loadCart(){ try{const d=JSON.parse(localStorage.getItem('safepet_cart')||'[]');return Array.isArray(d)?d:[];}catch(e){return [];} }
+function saveCart(l){ try{localStorage.setItem('safepet_cart', JSON.stringify(l));}catch(e){} }
+function cartCountSum(){ return loadCart().reduce((a,b)=> a + (b.pricingMode==='kg' ? (b.weightKg||0) : (b.qty||0)), 0); }
+function updateCartCount(){ const el=document.getElementById('cartCount'); if(el) el.textContent = cartCountSum(); }
+function addToCart(item){ const l=loadCart(); const i=l.findIndex(p=>p.name===item.name && ((p.pricingMode||'unit')===(item.pricingMode||'unit'))); if(i>-1){ if(item.pricingMode==='kg'){ l[i].weightKg=(l[i].weightKg||0)+item.weightKg; } else { l[i].qty=(l[i].qty||1)+item.qty; } } else { l.push(item); } saveCart(l); updateCartCount(); }
+
+// Auth helpers - only define fallbacks when not provided by auth.js
+if(!window.getUser){
+  window.getUser = function(){ try{ return JSON.parse(localStorage.getItem('safepet_user')||'null'); }catch(e){return null;} };
+}
+if(!window.isLoggedIn){
+  window.isLoggedIn = function(){ return !!window.getUser(); };
+}
+if(!window.renderAccount){
+  window.renderAccount = function(){ const el=document.getElementById('accountName'); const btn=document.getElementById('accountBtn'); const user=window.getUser(); if(!el||!btn) return; if(user){ el.textContent = user.name || user.email || 'Mi Cuenta'; btn.href='cuenta.html'; } else { el.textContent=''; btn.href='cuenta.html?next=' + encodeURIComponent(window.location.href); } };
+} 
+
+const modal=document.getElementById('cartModal');
+const backdrop=document.getElementById('modalBackdrop');
+const modalMsg=document.getElementById('modalMessage');
+const modalImageEl=document.getElementById('modalImage');
+const openModal=(msg, img)=>{ if(modalMsg){ modalMsg.textContent=msg; modalMsg.classList.add('modal-msg'); setTimeout(()=>modalMsg.classList.remove('modal-msg'),500); } if(modalImageEl){ if(img){ modalImageEl.src = img; modalImageEl.style.display='block'; } else { modalImageEl.src=''; modalImageEl.style.display='none'; } } if(modal) modal.classList.add('active'); if(backdrop) backdrop.classList.add('active'); };
+const closeModal=()=>{ if(modal) modal.classList.remove('active'); if(backdrop) backdrop.classList.remove('active'); };
+
+document.getElementById('closeModal').addEventListener('click', closeModal);
+backdrop.addEventListener('click', closeModal);
+document.getElementById('continueShopping').addEventListener('click', closeModal);
+
+// Crear modal de cantidad si no existe
+let qtyModal=document.getElementById('qtyModal');
+if(!qtyModal){
+  const wrapper=document.createElement('div');
+  wrapper.innerHTML=`<div class=\"modal\" id=\"qtyModal\" aria-hidden=\"true\" role=\"dialog\"><div class=\"modal-dialog\" role=\"document\" aria-modal=\"true\"><div class=\"modal-header\"><span class=\"modal-title\">Selecciona cantidad</span><button class=\"modal-close\" id=\"qtyClose\" aria-label=\"Cerrar\">&times;</button></div><div class=\"modal-body\" style=\"display:flex;gap:16px;align-items:center;flex-wrap:wrap\"><img id=\"qtyImage\" src=\"\" alt=\"Producto\" style=\"width:100px;height:100px;object-fit:cover;border-radius:8px\" /><div style=\"flex:1;min-width:220px\"><div id=\"qtyName\" style=\"font-weight:700;margin-bottom:8px\"></div><div style=\"margin:8px 0 4px; font-weight:600\">Modo</div><div id=\"modeRadios\" style=\"display:flex; gap:12px; align-items:center\"><label style=\"display:flex;align-items:center; gap:6px\"><input type=\"radio\" name=\"mode\" id=\"modeUnitRadio\" value=\"unit\" checked> Unidades</label><label id=\"modeKgLabel\" style=\"display:flex;align-items:center; gap:6px; opacity:.5\"><input type=\"radio\" name=\"mode\" id=\"modeKgRadio\" value=\"kg\" disabled> Kilogramos</label></div><div id=\"unitControls\" style=\"margin-top:8px\"><label>Cantidad de unidades</label><input type=\"number\" id=\"qtyUnits\" class=\"input\" value=\"1\" min=\"1\" step=\"1\" style=\"max-width:180px\" /></div><div id=\"kgControls\" style=\"display:none;margin-top:8px\"><label>Peso en kg</label><input type=\"number\" id=\"qtyKg\" class=\"input\" value=\"1\" min=\"0.5\" step=\"0.5\" style=\"max-width:180px\" /></div></div></div><div class=\"modal-footer\"><button class=\"btn-outline\" id=\"qtyCancel\">Cancelar</button><button class=\"btn-primary\" id=\"qtyConfirm\">Agregar</button></div></div></div>`;
+  document.body.appendChild(wrapper.firstElementChild);
+}
+
+// Referencias modal
+qtyModal=document.getElementById('qtyModal');
+const qtyClose=document.getElementById('qtyClose');
+const qtyCancel=document.getElementById('qtyCancel');
+const qtyConfirm=document.getElementById('qtyConfirm');
+const qtyImage=document.getElementById('qtyImage');
+const qtyName=document.getElementById('qtyName');
+const modeUnitRadio=document.getElementById('modeUnitRadio');
+const modeKgRadio=document.getElementById('modeKgRadio');
+const modeKgLabel=document.getElementById('modeKgLabel');
+const unitControls=document.getElementById('unitControls');
+const kgControls=document.getElementById('kgControls');
+const qtyUnits=document.getElementById('qtyUnits');
+const qtyKg=document.getElementById('qtyKg');
+let pendingProduct=null;
+
+function openQty(product){ pendingProduct=product; qtyImage.src=product.image||''; qtyName.textContent=product.name; if(modeKgLabel){ modeKgLabel.style.opacity='.5'; } if(modeKgRadio){ modeKgRadio.disabled=true; modeKgRadio.checked=false; } if(modeUnitRadio){ modeUnitRadio.checked=true; } unitControls.style.display='block'; kgControls.style.display='none'; qtyUnits.value=1; qtyKg.value=1; qtyModal.classList.add('active'); backdrop.classList.add('active'); }
+function closeQty(){ qtyModal.classList.remove('active'); backdrop.classList.remove('active'); }
+function syncMode(){ const v = (modeKgRadio && modeKgRadio.checked) ? 'kg' : 'unit'; unitControls.style.display= v==='unit' ? 'block' : 'none'; kgControls.style.display= v==='kg' ? 'block' : 'none'; }
+if(modeUnitRadio) modeUnitRadio.addEventListener('change', syncMode);
+if(modeKgRadio) modeKgRadio.addEventListener('change', syncMode);
+qtyClose.addEventListener('click', closeQty);
+qtyCancel.addEventListener('click', closeQty);
+qtyConfirm.addEventListener('click', ()=>{
+  if(!pendingProduct) return;
+  const q=Math.max(1, parseInt(qtyUnits.value)||1);
+  addToCart({ name: pendingProduct.name, image: pendingProduct.image, price: pendingProduct.priceUnit||pendingProduct.price||9.99, pricingMode:'unit', qty: q });
+  closeQty(); openModal(`${pendingProduct.name} (x${q}) agregado al carrito`, pendingProduct.image);
+});
+
+function attachBuyButtons(){
+  document.querySelectorAll('.add-to-cart').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      console.log('buy-click', btn.getAttribute('data-product'), 'loggedIn=', isLoggedIn());
+      if(!isLoggedIn()){
+        showNotice('Inicia sesión para sincronizar tu carrito, pero puedes comprar como invitado.','Iniciar sesión','cuenta.html?next=' + encodeURIComponent(window.location.href));
+        console.debug('guest buy banner shown');
+      }
+      const name=btn.getAttribute('data-product')||'Producto';
+      let img=''; const card=btn.closest('.card'); if(card){ const im=card.querySelector('img'); if(im) img=im.getAttribute('src')||''; }
+      openQty({ name, image: img, priceUnit: parseFloat(btn.getAttribute('data-price-unit')||'9.99') });
+    });
+  });
+}
+function ensureCartLinks(){ document.querySelectorAll('a[href="carrito.html"]').forEach(a=>{ a.addEventListener('click', function(e){ e.preventDefault(); window.location.href='carrito.html'; }); }); }
+window.addEventListener('DOMContentLoaded', ()=>{
+  try{ updateCartCount(); renderAccount(); attachBuyButtons(); attachFavoriteButtons(); attachHeaderActions(); ensureCartLinks(); }
+  catch(e){ console.error('init kennel failed', e); }
+});
+
+// Delegated buy handler (fallback)
+(function(){
+  function delegatedBuy(e){
+    try{
+      const btn = e.target.closest && e.target.closest('.add-to-cart'); if(!btn) return; e.preventDefault(); console.debug('delegated-buy', btn.getAttribute('data-product'), 'isLoggedIn=', isLoggedIn());
+      if(!isLoggedIn()){ try{ showNotice('Inicia sesión para sincronizar tu carrito, pero puedes comprar como invitado.','Iniciar sesión','cuenta.html?next=' + encodeURIComponent(window.location.href)); }catch(err){} }
+      const name = btn.getAttribute('data-product') || 'Producto'; const price = parseFloat(btn.getAttribute('data-price-unit')||'9.99'); const img = (btn.closest('.card') && btn.closest('.card').querySelector('img')) ? btn.closest('.card').querySelector('img').getAttribute('src') : '';
+      if(btn.getAttribute('data-qty-modal')==='true' || btn.getAttribute('data-modes')){
+        if(typeof openQty === 'function') openQty({ name, image: img, priceUnit: price, priceKg: parseFloat(btn.getAttribute('data-price-kg')||price), modes: btn.getAttribute('data-modes') ? btn.getAttribute('data-modes').split(',') : null });
+        else { addToCart({ name, image: img, pricingMode:'unit', qty:1, price: price }); if(typeof showNotice==='function') showNotice(`${name} agregado al carrito`); }
+      } else {
+        addToCart({ name, image: img, pricingMode:'unit', qty:1, price: price }); if(typeof openModal === 'function') openModal(`${name} agregado al carrito`, img); else if(typeof showNotice==='function') showNotice(`${name} agregado al carrito`);
+      }
+      updateCartCount && updateCartCount();
+    }catch(err){ console.error('delegatedBuy failed', err); }
+  }
+  if(document.readyState === 'loading') document.addEventListener('click', delegatedBuy); else document.addEventListener('click', delegatedBuy);
+})();
+</script>
+</body>
+</html>
